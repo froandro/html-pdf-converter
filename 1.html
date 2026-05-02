@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML to PDF — Morja</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Load jsPDF library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Load DOMPurify for HTML sanitization -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #00C48C;
+      --primary-hover: #00A373;
+      --text-dark: #333333;
+      --text-medium: #666666;
+      --border: #E0E0E0;
+      --bg-light: #F8F8F8;
+      --font-stack: 'Atkinson Hyperlegible', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-stack);
+      color: var(--text-dark);
+      background-color: #fff;
+      line-height: 1.5;
+    }
+
+    header {
+      padding: 24px 24px 0;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 18px;
+      text-decoration: none;
+      color: var(--text-dark);
+    }
+    .logo svg {
+      width: 24px;
+      height: 24px;
+      fill: var(--primary);
+    }
+
+    .hero {
+      text-align: center;
+      padding: 32px 24px 24px;
+    }
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .hero p {
+      font-size: 18px;
+      color: #777;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ——— Tabs without borders ——— */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin: 24px 0;
+      padding: 0 12px;
+    }
+    .tab {
+      padding: 6px 0;
+      cursor: pointer;
+      font-size: 15px;
+      color: var(--text-medium);
+      font-weight: 400;
+      background: none;
+      border: none;
+      position: relative;
+    }
+    .tab.active {
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: var(--primary);
+    }
+    .tab:hover:not(.active) {
+      color: var(--text-dark);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: var(--font-stack);
+      font-size: 14px;
+      resize: vertical;
+      background: #fafafa;
+      color: #555;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 196, 140, 0.2);
+    }
+    
+    #tab-code textarea {
+      font-size: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      font-family: var(--font-stack);
+    }
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: #0b8;
+      font-weight: 400;
+      font-size: 14px;
+      padding: 8px 16px;
+      margin-left: 8px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    /* More Options */
+    .more-options {
+      margin-top: 32px;
+      padding: 24px;
+      background-color: var(--bg-light);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .option-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .option-label {
+      font-size: 13px;
+      color: var(--text-medium);
+      font-weight: 400;
+    }
+    select,
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: var(--font-stack);
+      font-size: 14px;
+      background: white;
+    }
+    select:focus,
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 196, 140, 0.2);
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .checkbox-item input {
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .checkbox-item label {
+      font-size: 14px;
+      color: var(--text-dark);
+      line-height: 1.4;
+    }
+    
+    .option-help {
+      font-size: 12px;
+      color: var(--text-medium);
+      display: block;
+      margin-top: 4px;
+    }
+    
+    /* Стили для кнопки Change files будут наследоваться от классов btn btn-outline */
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 28px; }
+      .hero p { font-size: 16px; }
+      .tabs { gap: 16px; }
+      .options-grid { grid-template-columns: 1fr; }
+    }
+    
+    /* Smooth transitions for tab content */
+    .tab-content {
+      display: none;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .tab-content.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+      animation: fadeInSlideUp 0.3s ease-out forwards;
+    }
+    
+    @keyframes fadeInSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Focus styles for accessibility */
+    .tab:focus {
+      outline: none;
+      border-radius: 4px;
+    }
+
+    .tab:focus-visible {
+      outline: none;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+    Morja
+  </a>
+</header>
+
+<main>
+  <section class="hero">
+    <h1 style="font-weight: bold; font-size: 36px;">HTML to PDF</h1>
+    <h2 style="font-weight: 500; font-size: 26px; color: #9AA5AA;">Convert web pages or HTML files to PDF documents</h2>
+
+    <div class="tabs" role="tablist" aria-label="Conversion options">
+      <div class="tab active" role="tab" aria-selected="true" aria-controls="tab-url" tabindex="0" data-tab="url">Convert URL to PDF</div>
+      <div class="tab" role="tab" aria-selected="false" aria-controls="tab-file" tabindex="-1" data-tab="file">Convert HTML files</div>
+      <div class="tab" role="tab" aria-selected="false" aria-controls="tab-code" tabindex="-1" data-tab="code">HTML code</div>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="tab-url" class="tab-content active" role="tabpanel" aria-labelledby="tab-url">
+      <textarea placeholder="Paste your URLs here, one per line:
+https://www.example.com/
+https://www.google.com/"></textarea>
+      <p style="text-align:center; margin:12px 0; font-size:13px; color:#777;">
+        Add multiple URLs, one per line.
+      </p>
+      <div style="text-align:center;">
+        <button class="btn btn-primary">Convert URLs to PDF</button>
+        <button class="btn btn-outline">More options</button>
+      </div>
+      <p style="text-align:center; margin:12px 0; font-size:12px; color:#999;">
+        Tip: For better results, consider using external services like PDFShift, Microlink, or URLToPDF API
+      </p>
+
+      <div class="more-options" style="display:none;">
+        <div class="options-grid">
+          <div class="option-group">
+            <label class="option-label">Page size:</label>
+            <select title="Choose the paper size for your PDF">
+              <option title="Create one continuous page">One long page</option>
+              <option title="Standard A4 paper size">A4</option>
+              <option title="US Letter paper size">Letter</option>
+              <option title="US Legal paper size">Legal</option>
+              <option title="Custom paper size">Custom</option>
+            </select>
+            <small class="option-help">Determines the paper size of the output PDF</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Page orientation:</label>
+            <select>
+              <option>Auto</option>
+              <option>Portrait</option>
+              <option>Landscape</option>
+            </select>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Viewport width:</label>
+            <div style="display:flex; gap:8px;" title="Set the width of the browser viewport">
+              <input type="text" value="auto" placeholder="e.g. 1280" title="Width of the browser viewport">
+              <span style="line-height:32px;">px</span>
+            </div>
+            <small class="option-help">Browser viewport width for rendering the page</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Margin:</label>
+            <div style="display:flex; gap:8px;" title="Set the page margins">
+              <input type="number" value="0" min="0" title="Margin size">
+              <select style="flex:1;" title="Margin unit">
+                <option title="Pixels unit">Pixels</option>
+                <option title="Millimeters unit">mm</option>
+                <option title="Inches unit">in</option>
+              </select>
+            </div>
+            <small class="option-help">Spacing around the content on each page</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Initial delay:</label>
+            <select title="Wait time before capturing the page">
+              <option title="No delay">0 seconds</option>
+              <option title="Wait 1 second before capturing">1 second</option>
+              <option title="Wait 2 seconds before capturing">2 seconds</option>
+              <option title="Wait 3 seconds before capturing">3 seconds</option>
+              <option title="Wait 5 seconds before capturing">5 seconds</option>
+              <option title="Wait 10 seconds before capturing">10 seconds</option>
+            </select>
+            <small class="option-help">Wait time before taking screenshot of page</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Geo location:</label>
+            <select title="Set geographic location for geolocation API">
+              <option title="United States location">United States</option>
+              <option title="Germany location">Germany</option>
+              <option title="Japan location">Japan</option>
+              <option title="France location">France</option>
+              <option title="Brazil location">Brazil</option>
+              <option title="India location">India</option>
+            </select>
+            <small class="option-help">Geographic location for websites that use geolocation</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Language:</label>
+            <select title="Set the browser language">
+              <option title="English (US)">English (US)</option>
+              <option title="German">Deutsch</option>
+              <option title="Spanish">Español</option>
+              <option title="French">Français</option>
+              <option title="Japanese">日本語</option>
+              <option title="Portuguese">Português</option>
+            </select>
+            <small class="option-help">Language used by the browser for content negotiation</small>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="hide-cookies" checked title="Hide cookie consent banners">
+            <label for="hide-cookies">Automatically hide cookie notices</label>
+          </div>
+          <small class="option-help">Removes cookie consent banners from the page</small>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="print-styles" title="Use print-specific CSS styles">
+            <label for="print-styles">Use print stylesheet</label>
+          </div>
+          <small class="option-help">Applies print-specific CSS rules for better formatting</small>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="show-url-date" title="Show URL and date on PDF">
+            <label for="show-url-date">Show URL and date on PDF</label>
+          </div>
+          <small class="option-help">Adds the source URL and timestamp to the PDF</small>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background-color: #e8f4fd; border-radius: 6px; border: 1px solid #b3d9ff;">
+          <h4 style="margin: 0 0 10px 0; color: #0066cc;">Need better results?</h4>
+          <p style="margin: 0 0 10px 0; font-size: 13px;">
+            For more reliable and feature-rich PDF conversion, consider using external services:
+          </p>
+          <ul style="margin: 0 0 10px 20px; font-size: 13px;">
+            <li><a href="https://pdfshift.com" target="_blank" style="color: #0066cc;">PDFShift</a> - Advanced PDF conversion with full CSS/JS support</li>
+            <li><a href="https://microlink.io" target="_blank" style="color: #0066cc;">Microlink.io</a> - Screenshot and PDF API service</li>
+            <li><a href="https://htmlpdflib.com" target="_blank" style="color: #0066cc;">HTMLPDfLib</a> - HTML to PDF conversion API</li>
+          </ul>
+          <p style="margin: 0; font-size: 12px; color: #666;">
+            These services typically offer better compatibility, more options, and higher reliability.
+          </p>
+          
+          <div style="margin-top: 10px; padding: 10px; background-color: #e6f7ee; border-radius: 4px; border-left: 3px solid #52c41a;">
+            <h5 style="margin: 0 0 5px 0; color: #2f6f1d;">Microlink.io integration:</h5>
+            <p style="margin: 0; font-size: 12px;">
+              This application uses Microlink.io API for high-quality PDF conversion with full CSS/JS support.
+              If unavailable, it falls back to the local conversion method.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-file" class="tab-content" role="tabpanel" aria-labelledby="tab-file">
+      <button class="btn btn-primary" style="margin: 0 auto; display:block;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 2H6C5.46957 2 4.95982 2.21071 4.58579 2.58579C4.21177 2.96086 4 3.47062 4 4V20C4 20.5304 4.21071 21.0402 4.58579 21.4142C4.96086 21.7892 5.47062 22 6 22H18C18.5304 22 19.0402 21.7892 19.4142 21.4142C19.7892 21.0402 20 20.5304 20 20V8L14 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 2V8H20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Upload HTML files
+      </button>
+    </div>
+
+    <div id="tab-code" class="tab-content" role="tabpanel" aria-labelledby="tab-code">
+      <textarea placeholder="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;meta content=&quot;width=device-width, initial-scale=1.0&quot; name=&quot;viewport&quot;&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello PDF!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;"></textarea>
+      <div style="text-align:center; margin-top:16px;">
+        <button class="btn btn-primary">Convert HTML to PDF</button>
+        <button class="btn btn-outline">More options</button>
+      </div>
+      <p style="text-align:center; margin:12px 0; font-size:12px; color:#999;">
+        Tip: For better results, consider using external services like PDFShift, Microlink, or URLToPDF API
+      </p>
+
+      <div class="more-options" style="display:none;">
+        <div class="options-grid">
+          <div class="option-group">
+            <label class="option-label">Page size:</label>
+            <select title="Choose the paper size for your PDF">
+              <option title="Create one continuous page">One long page</option>
+              <option title="Standard A4 paper size">A4</option>
+              <option title="US Letter paper size">Letter</option>
+            </select>
+            <small class="option-help">Determines the paper size of the output PDF</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Page orientation:</label>
+            <select title="Choose the page orientation">
+              <option title="Automatic orientation detection">Auto</option>
+              <option title="Portrait orientation (taller than wide)">Portrait</option>
+              <option title="Landscape orientation (wider than tall)">Landscape</option>
+            </select>
+            <small class="option-help">Sets the rotation of the page</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Margin:</label>
+            <div style="display:flex; gap:8px;" title="Set the page margins">
+              <input type="number" value="0" min="0" title="Margin size">
+              <select title="Margin unit">
+                <option title="Pixels unit">Pixels</option>
+                <option title="Millimeters unit">mm</option>
+              </select>
+            </div>
+            <small class="option-help">Spacing around the content on each page</small>
+          </div>
+
+          <div class="option-group">
+            <label class="option-label">Language:</label>
+            <select title="Set the browser language">
+              <option title="English (US)">English (US)</option>
+              <option title="German">Deutsch</option>
+            </select>
+            <small class="option-help">Language used by the browser for content negotiation</small>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-item">
+            <input type="checkbox" id="hide-cookies2" checked title="Hide cookie consent banners">
+            <label for="hide-cookies2">Automatically hide cookie notices</label>
+          </div>
+          <small class="option-help">Removes cookie consent banners from the page</small>
+
+          <div class="checkbox-item">
+            <input type="checkbox" id="print-styles2" title="Use print-specific CSS styles">
+            <label for="print-styles2">Use print stylesheet</label>
+          </div>
+          <small class="option-help">Applies print-specific CSS rules for better formatting</small>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background-color: #e8f4fd; border-radius: 6px; border: 1px solid #b3d9ff;">
+          <h4 style="margin: 0 0 10px 0; color: #0066cc;">Need better results?</h4>
+          <p style="margin: 0 0 10px 0; font-size: 13px;">
+            For more reliable and feature-rich PDF conversion, consider using external services:
+          </p>
+          <ul style="margin: 0 0 10px 20px; font-size: 13px;">
+            <li><a href="https://pdfshift.com" target="_blank" style="color: #0066cc;">PDFShift</a> - Advanced PDF conversion with full CSS/JS support</li>
+            <li><a href="https://microlink.io" target="_blank" style="color: #0066cc;">Microlink.io</a> - Screenshot and PDF API service</li>
+            <li><a href="https://htmlpdflib.com" target="_blank" style="color: #0066cc;">HTMLPDfLib</a> - HTML to PDF conversion API</li>
+          </ul>
+          <p style="margin: 0; font-size: 12px; color: #666;">
+            These services typically offer better compatibility, more options, and higher reliability.
+          </p>
+          
+          <div style="margin-top: 10px; padding: 10px; background-color: #e6f7ee; border-radius: 4px; border-left: 3px solid #52c41a;">
+            <h5 style="margin: 0 0 5px 0; color: #2f6f1d;">Microlink.io integration:</h5>
+            <p style="margin: 0; font-size: 12px;">
+              This application uses Microlink.io API for high-quality PDF conversion with full CSS/JS support.
+              If unavailable, it falls back to the local conversion method.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // Configuration constants
+  const CONFIG = {
+    PROCESSING_DELAY: 1500,
+    CANVAS_SCALE_HIGH: 3,
+    CANVAS_SCALE_NORMAL: 2,
+    NOTIFICATION_AUTO_CLOSE: 5000,
+    NOTIFICATION_ANIMATION_DURATION: 300,
+    DEFAULT_VIEWPORT_WIDTH: 1280,
+    PDF_IMAGE_QUALITY: 0.98,
+    PDF_IMAGE_FORMAT: 'JPEG',
+    MICROLINK_TIMEOUT: 30000
+  };
+
+  // Enhanced tab functionality
+  document.querySelectorAll('.tab').forEach((tab, index) => {
+    // Set initial ARIA attributes
+    tab.setAttribute('aria-selected', tab.classList.contains('active') ? 'true' : 'false');
+    
+    // Click event for tabs
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchTab(tab);
+    });
+    
+    // Keyboard navigation for tabs
+    tab.addEventListener('keydown', (e) => {
+      let nextTab, prevTab;
+      
+      switch(e.key) {
+        case 'ArrowRight':
+          nextTab = tab.nextElementSibling || document.querySelector('.tabs .tab:first-child');
+          nextTab.focus();
+          break;
+          
+        case 'ArrowLeft':
+          prevTab = tab.previousElementSibling || document.querySelector('.tabs .tab:last-child');
+          prevTab.focus();
+          break;
+          
+        case 'Home':
+          document.querySelector('.tabs .tab:first-child').focus();
+          break;
+          
+        case 'End':
+          document.querySelector('.tabs .tab:last-child').focus();
+          break;
+          
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          switchTab(tab);
+          break;
+      }
+    });
+  });
+  
+  // Function to switch tabs
+  function switchTab(selectedTab) {
+    const target = selectedTab.getAttribute('data-tab');
+    
+    // Update URL hash
+    window.location.hash = `tab-${target}`;
+    
+    // Remove active classes and update ARIA attributes
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.classList.remove('active');
+      tab.setAttribute('aria-selected', 'false');
+      tab.setAttribute('tabindex', '-1');
+    });
+    
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    
+    // Add active classes and update ARIA attributes
+    selectedTab.classList.add('active');
+    selectedTab.setAttribute('aria-selected', 'true');
+    selectedTab.setAttribute('tabindex', '0');
+    selectedTab.focus(); // Focus on the active tab for accessibility
+    
+    const targetContent = document.getElementById(`tab-${target}`);
+    targetContent.classList.add('active');
+    
+    // Trigger reflow to ensure proper rendering of the active tab
+    targetContent.offsetHeight;
+  }
+  
+  // Handle URL hash changes
+  window.addEventListener('hashchange', handleHashChange);
+  
+  // Check for initial hash on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    if(window.location.hash) {
+      handleHashChange();
+    }
+  });
+  
+  function handleHashChange() {
+    const hash = window.location.hash.substring(1); // Remove '#'
+    const targetTab = document.querySelector(`[aria-controls="${hash}"]`);
+    
+    if(targetTab) {
+      switchTab(targetTab);
+    }
+  }
+  
+  // More options button functionality
+  document.querySelectorAll('.btn-outline').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const parent = btn.closest('.tab-content');
+      const moreOpts = parent.querySelector('.more-options');
+      const isVisible = moreOpts.style.display !== 'none';
+      
+      moreOpts.style.display = isVisible ? 'none' : 'block';
+      
+      // Update button text based on visibility
+      const buttonText = btn.textContent.trim().split('\n')[0].trim(); // Get the first line of text
+      btn.innerHTML = isVisible ? 
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> More options' : 
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Less options';
+    });
+  });
+  
+  // Conversion functionality for all tabs
+  document.querySelectorAll('.btn-primary').forEach(button => {
+    button.addEventListener('click', function() {
+      const tabContent = this.closest('.tab-content');
+      const tabId = tabContent.id;
+      
+      // Show processing indicator
+      showProcessingIndicator();
+      
+      // Process based on the tab
+      setTimeout(async () => {
+        try {
+          if (tabId === 'tab-url') {
+            await handleUrlConversion(tabContent);
+          } else if (tabId === 'tab-file') {
+            // File conversion is handled by the upload event listener
+            showNotification('Please upload files first using the upload button', 'warning');
+          } else if (tabId === 'tab-code') {
+            await handleCodeConversion(tabContent);
+          }
+        } catch (error) {
+          console.error('Conversion error:', error);
+          showNotification('An error occurred during conversion', 'error');
+        } finally {
+          // Hide processing indicator after conversion
+          hideProcessingIndicator();
+        }
+      }, CONFIG.PROCESSING_DELAY);
+    });
+  });
+  
+  // Handle URL conversion
+  async function handleUrlConversion(tabContent) {
+    const textArea = tabContent.querySelector('textarea');
+    const urls = textArea.value.split('\n').filter(url => url.trim() !== '');
+
+    if (urls.length === 0) {
+      showNotification('Please enter at least one URL to convert', 'error');
+      return;
+    }
+
+    // Validate URLs
+    const validUrls = [];
+    const invalidUrls = [];
+    
+    for (const url of urls) {
+      try {
+        let normalizedUrl = url.trim();
+        if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+          normalizedUrl = 'https://' + normalizedUrl;
+        }
+        
+        new URL(normalizedUrl);
+        validUrls.push(normalizedUrl);
+      } catch (e) {
+        invalidUrls.push(url.trim());
+      }
+    }
+
+    if (invalidUrls.length > 0) {
+      showNotification(`Skipped invalid URLs: ${invalidUrls.join(', ')}`, 'warning');
+    }
+
+    if (validUrls.length === 0) {
+      showNotification('No valid URLs to convert', 'error');
+      return;
+    }
+
+    // Get options
+    const options = getOptions(tabContent);
+
+    // Process each URL and convert to PDF
+    for (const url of validUrls) {
+      try {
+        await convertUrlToPdf(url, options);
+      } catch (error) {
+        console.error(`Error converting ${url}:`, error);
+        showNotification(`Failed to convert ${url}: ${error.message}`, 'error');
+      }
+    }
+  }
+
+  // Convert a single URL to PDF using Microlink.io service
+  async function convertUrlToPdf(url, options) {
+    showNotification(`Converting via Microlink.io: ${url}`, 'info');
+    
+    try {
+      const urlObj = new URL(url);
+      const isLocal = ['localhost', '127.0.0.1'].includes(urlObj.hostname) || 
+                      urlObj.hostname === window.location.hostname;
+                        
+      if (isLocal) {
+        const response = await fetch(url);
+        if (response.ok) {
+          const htmlContent = await response.text();
+          await generateSamplePDF(sanitizeFileName(urlObj.hostname) + '_converted.pdf', htmlContent, options);
+          showNotification(`Converted local resource: ${url}`, 'success');
+          return;
+        }
+      }
+      
+      const microlinkParams = new URLSearchParams({
+        url,
+        endpoint: 'pdf',
+        'pdf.download': 'true',
+        'pdf.printBackground': 'true',
+        'pdf.displayHeaderFooter': 'false',
+        'pdf.margin.top': options.margin?.value || '0',
+        'pdf.margin.bottom': options.margin?.value || '0',
+        'pdf.margin.left': options.margin?.value || '0',
+        'pdf.margin.right': options.margin?.value || '0',
+        'pdf.format': options.pageSize && options.pageSize !== 'One long page' ? 
+                      (options.pageSize === 'Letter' ? 'letter' : options.pageSize.toLowerCase()) : 'a4',
+        'pdf.landscape': options.orientation === 'Landscape' ? 'true' : 'false',
+        'pdf.pageRanges': '1-',
+        'pdf.ignoreInvalidPageRanges': 'true',
+        'pdf.timeout': String(CONFIG.MICROLINK_TIMEOUT),
+        'waitUntil': 'networkidle0',
+        'viewport.isMobile': 'false'
+      });
+
+      const response = await fetch(`https://api.microlink.io/?${microlinkParams}`);
+      
+      if (!response.ok) {
+        throw new Error(`Microlink.io API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status !== 'success' || !data.data?.pdf) {
+        throw new Error(data.status || 'Unknown error');
+      }
+      
+      const pdfResponse = await fetch(data.data.pdf.url);
+      if (!pdfResponse.ok) throw new Error(`PDF download failed: ${pdfResponse.status}`);
+      
+      const pdfBlob = await pdfResponse.blob();
+      const downloadUrl = window.URL.createObjectURL(pdfBlob);
+      const fileName = sanitizeFileName(urlObj.hostname) + '_converted.pdf';
+      
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(downloadUrl);
+      }, 100);
+      
+      showNotification(`Successfully converted ${url}`, 'success');
+    } catch (error) {
+      console.error('Microlink.io failed:', error);
+      showNotification(`Microlink.io failed, trying alternative method...`, 'warning');
+      await convertUrlToPdfAlternative(url, options);
+    }
+  }
+
+  // Alternative URL to PDF conversion without server
+  async function convertUrlToPdfAlternative(url, options) {
+    showNotification(`Using alternative method for: ${url}`, 'info');
+    
+    const proxies = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      `https://cors-proxy.htmldriven.com/?url=${encodeURIComponent(url)}`,
+      `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`
+    ];
+    
+    let htmlContent = null;
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy);
+        if (res.ok) { htmlContent = await res.text(); break; }
+      } catch (e) { continue; }
+    }
+    
+    if (!htmlContent) {
+      showNotification('Cannot load URL due to CORS. Use HTML code or files tabs.', 'warning');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+      pdf.setFontSize(14);
+      pdf.text(`Cannot load: ${url}`, 20, 20);
+      pdf.setFontSize(10);
+      pdf.text('Due to CORS policy, external sites cannot be loaded.', 20, 40);
+      pdf.text('Use "HTML code" tab or download page as HTML file.', 20, 60);
+      pdf.save(sanitizeFileName(new URL(url).hostname) + '_info.pdf');
+      throw new Error('CORS policy prevents loading external URL');
+    }
+    
+    const iframe = document.createElement('iframe');
+    Object.assign(iframe.style, {
+      position: 'absolute', left: '-9999px',
+      width: (options.viewportWidth || CONFIG.DEFAULT_VIEWPORT_WIDTH) + 'px',
+      height: '100vh', border: 'none', visibility: 'hidden'
+    });
+    document.body.appendChild(iframe);
+    
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(htmlContent);
+    iframeDoc.close();
+    
+    await new Promise(resolve => {
+      if (iframe.contentWindow?.document.readyState === 'complete') resolve();
+      else iframe.onload = resolve;
+    });
+    
+    if (options.initialDelay) await new Promise(r => setTimeout(r, options.initialDelay));
+    
+    const canvas = await html2canvas(iframe.contentDocument.body, {
+      scale: CONFIG.CANVAS_SCALE_HIGH, useCORS: true, allowTaint: true,
+      backgroundColor: '#ffffff', logging: false,
+      width: iframe.contentDocument.documentElement.scrollWidth,
+      height: iframe.contentDocument.documentElement.scrollHeight
+    });
+    
+    document.body.removeChild(iframe);
+    
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgData = canvas.toDataURL(`image/${CONFIG.PDF_IMAGE_FORMAT}`, CONFIG.PDF_IMAGE_QUALITY);
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgRatio = canvas.width / canvas.height;
+    
+    let imgWidth, imgHeight;
+    if (imgRatio > pageWidth / pageHeight) {
+      imgWidth = pageWidth - 20;
+      imgHeight = imgWidth / imgRatio;
+    } else {
+      imgHeight = pageHeight - 20;
+      imgWidth = imgHeight * imgRatio;
+    }
+    
+    const xPos = (pageWidth - imgWidth) / 2;
+    const yPos = (pageHeight - imgHeight) / 2;
+    pdf.addImage(imgData, CONFIG.PDF_IMAGE_FORMAT, xPos, yPos, imgWidth, imgHeight);
+    pdf.save(sanitizeFileName(new URL(url).hostname) + '_converted.pdf');
+    
+    showNotification(`Converted using alternative method`, 'success');
+  }
+
+  // Helper function to sanitize filename
+  function sanitizeFileName(str) {
+    return str.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  }
+  
+  // Handle Code conversion
+  async function handleCodeConversion(tabContent) {
+    const textArea = tabContent.querySelector('textarea');
+    const htmlCode = textArea?.value?.trim();
+    
+    if (!htmlCode) {
+      showNotification('Please enter HTML code to convert', 'error');
+      return;
+    }
+    
+    const options = getOptions(tabContent);
+    await generateSamplePDF('converted_code.pdf', htmlCode, options);
+  }
+  
+  // Helper function to determine PDF format from options
+  function getPageFormatFromOptions(options) {
+    let pdfFormat = 'a4';
+    let pdfOrientation = 'p'; // portrait
+    
+    if (options.pageSize) {
+      switch(options.pageSize.toLowerCase()) {
+        case 'a4':
+          pdfFormat = 'a4';
+          break;
+        case 'letter':
+          pdfFormat = 'letter';
+          break;
+        case 'legal':
+          pdfFormat = 'legal';
+          break;
+        case 'one long page':
+          pdfFormat = [210, 297]; // Default A4, but we'll handle scrolling differently
+          break;
+        default:
+          pdfFormat = 'a4';
+      }
+    }
+    
+    if (options.orientation) {
+      if (options.orientation.toLowerCase() === 'landscape') {
+        pdfOrientation = 'l';
+      } else if (options.orientation.toLowerCase() === 'portrait') {
+        pdfOrientation = 'p';
+      }
+    }
+    
+    return { pdfFormat, pdfOrientation };
+  }
+  
+  // Helper function to create temporary container
+  function createTempContainer(htmlContent, options) {
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = DOMPurify.sanitize(htmlContent);
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.top = '0';
+    tempContainer.style.width = '210mm';
+    tempContainer.style.padding = options.margin ? `${options.margin.value}${options.margin.unit}` : '20px';
+    tempContainer.style.fontFamily = 'Arial, sans-serif';
+    tempContainer.style.fontSize = '12px';
+    tempContainer.style.lineHeight = '1.4';
+    tempContainer.style.background = '#ffffff';
+    return tempContainer;
+  }
+  
+  // Helper function to render HTML to canvas
+  async function renderHtmlToCanvas(tempContainer) {
+    return await html2canvas(tempContainer, {
+      scale: CONFIG.CANVAS_SCALE_NORMAL,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      width: tempContainer.scrollWidth,
+      height: tempContainer.scrollHeight
+    });
+  }
+  
+  // Helper function to create and save PDF
+  function createAndSavePdf(canvas, filename, pdfFormat, pdfOrientation) {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF(pdfOrientation, 'mm', pdfFormat);
+    const imgData = canvas.toDataURL(`image/${CONFIG.PDF_IMAGE_FORMAT}`, CONFIG.PDF_IMAGE_QUALITY);
+    
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    let heightLeft = imgHeight;
+    let position = 0;
+    
+    pdf.addImage(imgData, CONFIG.PDF_IMAGE_FORMAT, 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    
+    while (heightLeft > 0) {
+      position = -(pageHeight * (imgHeight / pageHeight - heightLeft / pageHeight));
+      pdf.addPage();
+      pdf.addImage(imgData, CONFIG.PDF_IMAGE_FORMAT, 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+    
+    pdf.save(filename);
+  }
+  
+  // Generate PDF from HTML content with options support
+  async function generateSamplePDF(filename, htmlContent = null, options = {}) {
+    if (!htmlContent) {
+      generateFallbackPDF(filename);
+      return;
+    }
+
+    try {
+      const { pdfFormat, pdfOrientation } = getPageFormatFromOptions(options);
+      const tempContainer = createTempContainer(htmlContent, options);
+      document.body.appendChild(tempContainer);
+
+      const canvas = await renderHtmlToCanvas(tempContainer);
+      document.body.removeChild(tempContainer);
+
+      createAndSavePdf(canvas, filename, pdfFormat, pdfOrientation);
+      showNotification(`PDF "${filename}" downloaded successfully.`, 'success');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      showNotification('Error generating PDF. Using fallback method.', 'error');
+      generateFallbackPDF(filename);
+    }
+  }
+  
+  // Get options from the form
+  function getOptions(tabContent) {
+    const optionsContainer = tabContent.querySelector('.more-options');
+    if (!optionsContainer || optionsContainer.style.display === 'none') return {};
+
+    const options = {};
+    const getValue = (selector) => tabContent.querySelector(selector)?.value;
+
+    // Page size and orientation
+    options.pageSize = getValue('select[title*="paper size"]');
+    options.orientation = getValue('select[title*="orientation"]');
+
+    // Viewport width
+    const viewportInput = tabContent.querySelector('input[title*="viewport"]') || 
+                         document.querySelector('#tab-url input[title*="viewport"]');
+    if (viewportInput) {
+      options.viewportWidth = viewportInput.value === 'auto' ? CONFIG.DEFAULT_VIEWPORT_WIDTH : viewportInput.value;
+    }
+
+    // Margin
+    const marginInput = tabContent.querySelector('input[title*="margin"]');
+    if (marginInput) {
+      options.margin = {
+        value: marginInput.value,
+        unit: tabContent.querySelector('select[title*="margin unit"]')?.value || 'px'
+      };
+    }
+
+    // Initial delay
+    const delaySelect = tabContent.querySelector('select[title*="Wait time"]');
+    if (delaySelect) {
+      const match = delaySelect.options[delaySelect.selectedIndex]?.textContent.match(/\d+/);
+      options.initialDelay = match ? parseInt(match[0]) * 1000 : 0;
+    }
+
+    // Checkboxes
+    const hideCookies = tabContent.querySelector('#hide-cookies');
+    const printStyles = tabContent.querySelector('#print-styles');
+    const showUrlDate = tabContent.querySelector('#show-url-date');
+    
+    if (hideCookies) options.hideCookies = hideCookies.checked;
+    if (printStyles) options.printStyles = printStyles.checked;
+    if (showUrlDate) options.showUrlDate = showUrlDate.checked;
+
+    return options;
+  }
+  
+  // Fallback PDF generation
+  function generateFallbackPDF(filename) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    doc.setFontSize(12);
+    doc.text('PDF generated from your HTML content.', 20, 20);
+    doc.save(filename);
+  }
+  
+  // Helper function to determine PDF format from options
+  function getPageFormatFromOptions(options) {
+    let pdfFormat = 'a4';
+    let pdfOrientation = 'p';
+    
+    if (options.pageSize) {
+      switch(options.pageSize.toLowerCase()) {
+        case 'a4': pdfFormat = 'a4'; break;
+        case 'letter': pdfFormat = 'letter'; break;
+        case 'legal': pdfFormat = 'legal'; break;
+        case 'one long page': pdfFormat = [210, 297]; break;
+        default: pdfFormat = 'a4';
+      }
+    }
+    
+    if (options.orientation) {
+      pdfOrientation = options.orientation.toLowerCase() === 'landscape' ? 'l' : 'p';
+    }
+    
+    return { pdfFormat, pdfOrientation };
+  }
+  
+  // Show processing indicator
+  function showProcessingIndicator() {
+    const overlay = document.createElement('div');
+    overlay.id = 'processing-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    `;
+
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    `;
+
+    spinner.innerHTML = `
+      <div style="width:40px;height:40px;border:4px solid #f3f3f3;border-top:4px solid var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:10px;"></div>
+      <p>Converting to PDF...</p>
+    `;
+    
+    // Add CSS animation for spinner
+    if (!document.getElementById('spinner-style')) {
+      const style = document.createElement('style');
+      style.id = 'spinner-style';
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    overlay.appendChild(spinner);
+    document.body.appendChild(overlay);
+  }
+  
+  // Hide processing indicator
+  function hideProcessingIndicator() {
+    const overlay = document.getElementById('processing-overlay');
+    if (overlay) overlay.remove();
+    const spinnerStyle = document.getElementById('spinner-style');
+    if (spinnerStyle) spinnerStyle.remove();
+  }
+  
+  // File upload functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    // Find the file upload button in the file tab
+    const fileTab = document.getElementById('tab-file');
+    const uploadBtn = fileTab.querySelector('.btn-primary');
+    
+    if (uploadBtn) {
+      // Create file input element
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.multiple = true;
+      fileInput.accept = '.html,.htm';
+      fileInput.style.display = 'none';
+      fileInput.id = 'file-upload-input';
+      
+      // Append to the file tab
+      fileTab.appendChild(fileInput);
+      
+      // Add click event to the upload button
+      uploadBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        fileInput.click();
+      });
+      
+      // Handle file selection
+      fileInput.addEventListener('change', async function() {
+        const files = Array.from(this.files);
+
+        if (files.length > 0) {
+          const fileInfoDiv = document.createElement('div');
+          fileInfoDiv.className = 'uploaded-files-info';
+          fileInfoDiv.style.cssText = `
+            margin-top: 15px;
+            padding: 10px;
+            background-color: var(--bg-light);
+            border-radius: 6px;
+            border: 1px dashed var(--border);
+          `;
+
+          const fileListHtml = files.map((file, index) => 
+            `<li class="uploaded-file" data-file-index="${index}">${DOMPurify.sanitize(file.name)} (${(file.size / 1024).toFixed(2)} KB)</li>`
+          ).join('');
+
+          fileInfoDiv.innerHTML = `
+            <p><strong>Uploaded files:</strong></p>
+            <ul style="margin: 10px 0;" id="file-list">
+              ${fileListHtml}
+            </ul>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn btn-primary" style="margin-top: 10px;">Convert HTML to PDF</button>
+              <button class="btn btn-outline" id="change-files-btn" style="margin-top: 10px;">Change files</button>
+            </div>
+          `;
+          
+          uploadBtn.style.display = 'none';
+          
+          fileInfoDiv.querySelector('#change-files-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            uploadBtn.style.display = 'block';
+            fileInput.value = '';
+            fileInfoDiv.remove();
+          });
+          
+          uploadBtn.parentNode.insertBefore(fileInfoDiv, uploadBtn.nextSibling);
+          
+          fileInfoDiv.querySelector('.btn-primary').addEventListener('click', async () => {
+            showProcessingIndicator();
+            
+            try {
+              let combinedHtmlContent = '';
+
+              for (const file of files) {
+                const fileContent = await readFileAsText(file);
+                combinedHtmlContent += `<div>${fileContent}</div><hr>`;
+              }
+              
+              const options = getOptions(fileInfoDiv.closest('.tab-content'));
+              await generateSamplePDF('converted_files.pdf', combinedHtmlContent, options);
+            } catch (error) {
+              console.error('Error processing files:', error);
+              showNotification('There was an error processing the files.', 'error');
+            } finally {
+              hideProcessingIndicator();
+            }
+          });
+        }
+      });
+    }
+  });
+  
+  // Helper function to read file as text
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        resolve(e.target.result);
+      };
+      
+      reader.onerror = function(e) {
+        reject(e);
+      };
+      
+      reader.readAsText(file);
+    });
+  }
+  
+  // Function to show notifications
+  function showNotification(message, type = 'info') {
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = DOMPurify.sanitize(message);
+
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 6px;
+      color: white;
+      font-family: var(--font-stack);
+      font-size: 14px;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 350px;
+      word-wrap: break-word;
+      transform: translateX(120%);
+      transition: transform 0.3s ease-out;
+    `;
+
+    if (type === 'error') {
+      notification.style.backgroundColor = '#ff4757';
+    } else if (type === 'success') {
+      notification.style.backgroundColor = '#2ed573';
+    } else if (type === 'warning') {
+      notification.style.backgroundColor = '#ffa502';
+    } else {
+      notification.style.backgroundColor = 'var(--primary)';
+    }
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.style.transform = 'translateX(0)';
+    }, 10);
+
+    setTimeout(() => {
+      notification.style.transform = 'translateX(120%)';
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, CONFIG.NOTIFICATION_ANIMATION_DURATION);
+    }, CONFIG.NOTIFICATION_AUTO_CLOSE);
+  }
+</script>
+
+</body>
+</html>

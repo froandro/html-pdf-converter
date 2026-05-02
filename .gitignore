@@ -1,0 +1,4 @@
+1.html.backup
+node_modules/
+*.backup
+.DS_Store
