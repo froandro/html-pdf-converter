@@ -349,15 +349,6 @@ https://www.google.com/"></textarea>
           </div>
 
           <div class="option-group">
-            <label class="option-label">Viewport width:</label>
-            <div style="display:flex; gap:8px;" title="Set the width of the browser viewport">
-              <input type="text" value="auto" placeholder="e.g. 1280" title="Width of the browser viewport">
-              <span style="line-height:32px;">px</span>
-            </div>
-            <small class="option-help">Browser viewport width for rendering the page</small>
-          </div>
-
-          <div class="option-group">
             <label class="option-label">Margin:</label>
             <div style="display:flex; gap:8px;" title="Set the page margins">
               <input type="number" value="0" min="0" title="Margin size">
@@ -370,64 +361,6 @@ https://www.google.com/"></textarea>
             <small class="option-help">Spacing around the content on each page</small>
           </div>
 
-          <div class="option-group">
-            <label class="option-label">Initial delay:</label>
-            <select title="Wait time before capturing the page">
-              <option title="No delay">0 seconds</option>
-              <option title="Wait 1 second before capturing">1 second</option>
-              <option title="Wait 2 seconds before capturing">2 seconds</option>
-              <option title="Wait 3 seconds before capturing">3 seconds</option>
-              <option title="Wait 5 seconds before capturing">5 seconds</option>
-              <option title="Wait 10 seconds before capturing">10 seconds</option>
-            </select>
-            <small class="option-help">Wait time before taking screenshot of page</small>
-          </div>
-
-          <div class="option-group">
-            <label class="option-label">Geo location:</label>
-            <select title="Set geographic location for geolocation API">
-              <option title="United States location">United States</option>
-              <option title="Germany location">Germany</option>
-              <option title="Japan location">Japan</option>
-              <option title="France location">France</option>
-              <option title="Brazil location">Brazil</option>
-              <option title="India location">India</option>
-            </select>
-            <small class="option-help">Geographic location for websites that use geolocation</small>
-          </div>
-
-          <div class="option-group">
-            <label class="option-label">Language:</label>
-            <select title="Set the browser language">
-              <option title="English (US)">English (US)</option>
-              <option title="German">Deutsch</option>
-              <option title="Spanish">Español</option>
-              <option title="French">Français</option>
-              <option title="Japanese">日本語</option>
-              <option title="Portuguese">Português</option>
-            </select>
-            <small class="option-help">Language used by the browser for content negotiation</small>
-          </div>
-        </div>
-
-        <div class="checkbox-group">
-          <div class="checkbox-item">
-            <input type="checkbox" id="hide-cookies" checked title="Hide cookie consent banners">
-            <label for="hide-cookies">Automatically hide cookie notices</label>
-          </div>
-          <small class="option-help">Removes cookie consent banners from the page</small>
-
-          <div class="checkbox-item">
-            <input type="checkbox" id="print-styles" title="Use print-specific CSS styles">
-            <label for="print-styles">Use print stylesheet</label>
-          </div>
-          <small class="option-help">Applies print-specific CSS rules for better formatting</small>
-
-          <div class="checkbox-item">
-            <input type="checkbox" id="show-url-date" title="Show URL and date on PDF">
-            <label for="show-url-date">Show URL and date on PDF</label>
-          </div>
-          <small class="option-help">Adds the source URL and timestamp to the PDF</small>
         </div>
         
         <div style="margin-top: 20px; padding: 15px; background-color: #e8f4fd; border-radius: 6px; border: 1px solid #b3d9ff;">
@@ -518,28 +451,6 @@ https://www.google.com/"></textarea>
             <small class="option-help">Spacing around the content on each page</small>
           </div>
 
-          <div class="option-group">
-            <label class="option-label">Language:</label>
-            <select title="Set the browser language">
-              <option title="English (US)">English (US)</option>
-              <option title="German">Deutsch</option>
-            </select>
-            <small class="option-help">Language used by the browser for content negotiation</small>
-          </div>
-        </div>
-
-        <div class="checkbox-group">
-          <div class="checkbox-item">
-            <input type="checkbox" id="hide-cookies2" checked title="Hide cookie consent banners">
-            <label for="hide-cookies2">Automatically hide cookie notices</label>
-          </div>
-          <small class="option-help">Removes cookie consent banners from the page</small>
-
-          <div class="checkbox-item">
-            <input type="checkbox" id="print-styles2" title="Use print-specific CSS styles">
-            <label for="print-styles2">Use print stylesheet</label>
-          </div>
-          <small class="option-help">Applies print-specific CSS rules for better formatting</small>
         </div>
         
         <div style="margin-top: 20px; padding: 15px; background-color: #e8f4fd; border-radius: 6px; border: 1px solid #b3d9ff;">
@@ -577,10 +488,7 @@ https://www.google.com/"></textarea>
     CANVAS_SCALE_NORMAL: 2,
     NOTIFICATION_AUTO_CLOSE: 5000,
     NOTIFICATION_ANIMATION_DURATION: 300,
-    DEFAULT_VIEWPORT_WIDTH: 1280,
-    PDF_IMAGE_QUALITY: 0.98,
-    PDF_IMAGE_FORMAT: 'JPEG',
-    MICROLINK_TIMEOUT: 30000
+    PDF_IMAGE_FORMAT: 'png',
   };
 
   // Enhanced tab functionality
@@ -709,7 +617,6 @@ https://www.google.com/"></textarea>
             await handleUrlConversion(tabContent);
           } else if (tabId === 'tab-file') {
             // File conversion is handled by the upload event listener
-            showNotification('Please upload files first using the upload button', 'warning');
           } else if (tabId === 'tab-code') {
             await handleCodeConversion(tabContent);
           }
@@ -775,9 +682,9 @@ https://www.google.com/"></textarea>
     }
   }
 
-  // Convert a single URL to PDF using Microlink.io service
+  // Convert a single URL to PDF
   async function convertUrlToPdf(url, options) {
-    showNotification(`Converting via Microlink.io: ${url}`, 'info');
+    showNotification(`Converting: ${url}`, 'info');
     
     try {
       const urlObj = new URL(url);
@@ -793,73 +700,48 @@ https://www.google.com/"></textarea>
           return;
         }
       }
-      
-      const microlinkParams = new URLSearchParams({
-        url,
-        endpoint: 'pdf',
-        'pdf.download': 'true',
-        'pdf.printBackground': 'true',
-        'pdf.displayHeaderFooter': 'false',
-        'pdf.margin.top': options.margin?.value || '0',
-        'pdf.margin.bottom': options.margin?.value || '0',
-        'pdf.margin.left': options.margin?.value || '0',
-        'pdf.margin.right': options.margin?.value || '0',
-        'pdf.format': options.pageSize && options.pageSize !== 'One long page' ? 
-                      (options.pageSize === 'Letter' ? 'letter' : options.pageSize.toLowerCase()) : 'a4',
-        'pdf.landscape': options.orientation === 'Landscape' ? 'true' : 'false',
-        'pdf.pageRanges': '1-',
-        'pdf.ignoreInvalidPageRanges': 'true',
-        'pdf.timeout': String(CONFIG.MICROLINK_TIMEOUT),
-        'waitUntil': 'networkidle0',
-        'viewport.isMobile': 'false'
-      });
 
-      const response = await fetch(`https://api.microlink.io/?${microlinkParams}`);
-      
-      if (!response.ok) {
-        throw new Error(`Microlink.io API error: ${response.status}`);
+      try {
+        const res = await fetch('/api/pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url,
+            pageSize: options.pageSize,
+            orientation: options.orientation,
+            margin: options.margin,
+          }),
+        });
+
+        if (res.ok) {
+          const blob = await res.blob();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const fileName = sanitizeFileName(urlObj.hostname) + '_converted.pdf';
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => { document.body.removeChild(a); window.URL.revokeObjectURL(downloadUrl); }, 100);
+          showNotification(`Converted: ${url}`, 'success');
+          return;
+        }
+      } catch (e) {
+        // Server not available, fall through to proxy
       }
-      
-      const data = await response.json();
-      
-      if (data.status !== 'success' || !data.data?.pdf) {
-        throw new Error(data.status || 'Unknown error');
-      }
-      
-      const pdfResponse = await fetch(data.data.pdf.url);
-      if (!pdfResponse.ok) throw new Error(`PDF download failed: ${pdfResponse.status}`);
-      
-      const pdfBlob = await pdfResponse.blob();
-      const downloadUrl = window.URL.createObjectURL(pdfBlob);
-      const fileName = sanitizeFileName(urlObj.hostname) + '_converted.pdf';
-      
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      
-      setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(downloadUrl);
-      }, 100);
-      
-      showNotification(`Successfully converted ${url}`, 'success');
+
+      await convertUrlViaProxy(url);
     } catch (error) {
-      console.error('Microlink.io failed:', error);
-      showNotification(`Microlink.io failed, trying alternative method...`, 'warning');
-      await convertUrlToPdfAlternative(url, options);
+      console.error('Conversion failed:', error);
+      showNotification(`Failed to convert ${url}: ${error.message}`, 'error');
     }
   }
 
-  // Alternative URL to PDF conversion without server
-  async function convertUrlToPdfAlternative(url, options) {
-    showNotification(`Using alternative method for: ${url}`, 'info');
-    
+  // Fallback: fetch URL via CORS proxy and convert with html2canvas
+  async function convertUrlViaProxy(url) {
     const proxies = [
       `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      `https://cors-proxy.htmldriven.com/?url=${encodeURIComponent(url)}`,
-      `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`
+      `https://corsproxy.io/?url=${encodeURIComponent(url)}`
     ];
     
     let htmlContent = null;
@@ -871,22 +753,14 @@ https://www.google.com/"></textarea>
     }
     
     if (!htmlContent) {
-      showNotification('Cannot load URL due to CORS. Use HTML code or files tabs.', 'warning');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
-      pdf.setFontSize(14);
-      pdf.text(`Cannot load: ${url}`, 20, 20);
-      pdf.setFontSize(10);
-      pdf.text('Due to CORS policy, external sites cannot be loaded.', 20, 40);
-      pdf.text('Use "HTML code" tab or download page as HTML file.', 20, 60);
-      pdf.save(sanitizeFileName(new URL(url).hostname) + '_info.pdf');
-      throw new Error('CORS policy prevents loading external URL');
+      showNotification(`Cannot load URL. Start the server or use HTML code/files tabs.`, 'warning');
+      return;
     }
     
     const iframe = document.createElement('iframe');
     Object.assign(iframe.style, {
       position: 'absolute', left: '-9999px',
-      width: (options.viewportWidth || CONFIG.DEFAULT_VIEWPORT_WIDTH) + 'px',
+      width: '1280px',
       height: '100vh', border: 'none', visibility: 'hidden'
     });
     document.body.appendChild(iframe);
@@ -901,8 +775,6 @@ https://www.google.com/"></textarea>
       else iframe.onload = resolve;
     });
     
-    if (options.initialDelay) await new Promise(r => setTimeout(r, options.initialDelay));
-    
     const canvas = await html2canvas(iframe.contentDocument.body, {
       scale: CONFIG.CANVAS_SCALE_HIGH, useCORS: true, allowTaint: true,
       backgroundColor: '#ffffff', logging: false,
@@ -914,7 +786,7 @@ https://www.google.com/"></textarea>
     
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
-    const imgData = canvas.toDataURL(`image/${CONFIG.PDF_IMAGE_FORMAT}`, CONFIG.PDF_IMAGE_QUALITY);
+    const imgData = canvas.toDataURL(`image/${CONFIG.PDF_IMAGE_FORMAT}`);
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const imgRatio = canvas.width / canvas.height;
@@ -933,7 +805,7 @@ https://www.google.com/"></textarea>
     pdf.addImage(imgData, CONFIG.PDF_IMAGE_FORMAT, xPos, yPos, imgWidth, imgHeight);
     pdf.save(sanitizeFileName(new URL(url).hostname) + '_converted.pdf');
     
-    showNotification(`Converted using alternative method`, 'success');
+    showNotification(`Converted via proxy: ${url}`, 'success');
   }
 
   // Helper function to sanitize filename
@@ -992,30 +864,38 @@ https://www.google.com/"></textarea>
   
   // Helper function to create temporary container
   function createTempContainer(htmlContent, options) {
-    const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = DOMPurify.sanitize(htmlContent);
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.top = '0';
-    tempContainer.style.width = '210mm';
-    tempContainer.style.padding = options.margin ? `${options.margin.value}${options.margin.unit}` : '20px';
-    tempContainer.style.fontFamily = 'Arial, sans-serif';
-    tempContainer.style.fontSize = '12px';
-    tempContainer.style.lineHeight = '1.4';
-    tempContainer.style.background = '#ffffff';
-    return tempContainer;
+    const iframe = document.createElement('iframe');
+    Object.assign(iframe.style, {
+      position: 'absolute',
+      left: '-9999px',
+      top: '0',
+      width: '210mm',
+      height: '100vh',
+      border: 'none',
+      visibility: 'hidden'
+    });
+    document.body.appendChild(iframe);
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(DOMPurify.sanitize(htmlContent));
+    doc.close();
+    return iframe;
   }
   
-  // Helper function to render HTML to canvas
-  async function renderHtmlToCanvas(tempContainer) {
-    return await html2canvas(tempContainer, {
+  async function renderHtmlToCanvas(iframe) {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    await new Promise(resolve => {
+      if (doc.readyState === 'complete') resolve();
+      else iframe.onload = resolve;
+    });
+    return await html2canvas(doc.body, {
       scale: CONFIG.CANVAS_SCALE_NORMAL,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
-      width: tempContainer.scrollWidth,
-      height: tempContainer.scrollHeight
+      width: doc.documentElement.scrollWidth,
+      height: doc.documentElement.scrollHeight
     });
   }
   
@@ -1023,7 +903,7 @@ https://www.google.com/"></textarea>
   function createAndSavePdf(canvas, filename, pdfFormat, pdfOrientation) {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF(pdfOrientation, 'mm', pdfFormat);
-    const imgData = canvas.toDataURL(`image/${CONFIG.PDF_IMAGE_FORMAT}`, CONFIG.PDF_IMAGE_QUALITY);
+    const imgData = canvas.toDataURL(`image/${CONFIG.PDF_IMAGE_FORMAT}`);
     
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
@@ -1055,11 +935,10 @@ https://www.google.com/"></textarea>
 
     try {
       const { pdfFormat, pdfOrientation } = getPageFormatFromOptions(options);
-      const tempContainer = createTempContainer(htmlContent, options);
-      document.body.appendChild(tempContainer);
+      const container = createTempContainer(htmlContent, options);
 
-      const canvas = await renderHtmlToCanvas(tempContainer);
-      document.body.removeChild(tempContainer);
+      const canvas = await renderHtmlToCanvas(container);
+      document.body.removeChild(container);
 
       createAndSavePdf(canvas, filename, pdfFormat, pdfOrientation);
       showNotification(`PDF "${filename}" downloaded successfully.`, 'success');
@@ -1082,13 +961,6 @@ https://www.google.com/"></textarea>
     options.pageSize = getValue('select[title*="paper size"]');
     options.orientation = getValue('select[title*="orientation"]');
 
-    // Viewport width
-    const viewportInput = tabContent.querySelector('input[title*="viewport"]') || 
-                         document.querySelector('#tab-url input[title*="viewport"]');
-    if (viewportInput) {
-      options.viewportWidth = viewportInput.value === 'auto' ? CONFIG.DEFAULT_VIEWPORT_WIDTH : viewportInput.value;
-    }
-
     // Margin
     const marginInput = tabContent.querySelector('input[title*="margin"]');
     if (marginInput) {
@@ -1097,22 +969,6 @@ https://www.google.com/"></textarea>
         unit: tabContent.querySelector('select[title*="margin unit"]')?.value || 'px'
       };
     }
-
-    // Initial delay
-    const delaySelect = tabContent.querySelector('select[title*="Wait time"]');
-    if (delaySelect) {
-      const match = delaySelect.options[delaySelect.selectedIndex]?.textContent.match(/\d+/);
-      options.initialDelay = match ? parseInt(match[0]) * 1000 : 0;
-    }
-
-    // Checkboxes
-    const hideCookies = tabContent.querySelector('#hide-cookies');
-    const printStyles = tabContent.querySelector('#print-styles');
-    const showUrlDate = tabContent.querySelector('#show-url-date');
-    
-    if (hideCookies) options.hideCookies = hideCookies.checked;
-    if (printStyles) options.printStyles = printStyles.checked;
-    if (showUrlDate) options.showUrlDate = showUrlDate.checked;
 
     return options;
   }
@@ -1125,28 +981,6 @@ https://www.google.com/"></textarea>
     doc.setFontSize(12);
     doc.text('PDF generated from your HTML content.', 20, 20);
     doc.save(filename);
-  }
-  
-  // Helper function to determine PDF format from options
-  function getPageFormatFromOptions(options) {
-    let pdfFormat = 'a4';
-    let pdfOrientation = 'p';
-    
-    if (options.pageSize) {
-      switch(options.pageSize.toLowerCase()) {
-        case 'a4': pdfFormat = 'a4'; break;
-        case 'letter': pdfFormat = 'letter'; break;
-        case 'legal': pdfFormat = 'legal'; break;
-        case 'one long page': pdfFormat = [210, 297]; break;
-        default: pdfFormat = 'a4';
-      }
-    }
-    
-    if (options.orientation) {
-      pdfOrientation = options.orientation.toLowerCase() === 'landscape' ? 'l' : 'p';
-    }
-    
-    return { pdfFormat, pdfOrientation };
   }
   
   // Show processing indicator

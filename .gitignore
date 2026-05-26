@@ -1,4 +1,7 @@
-1.html.backup
 node_modules/
 *.backup
+*.log
+*.pdf
 .DS_Store
+debug*.png
+repo.json
