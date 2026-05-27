@@ -649,18 +649,21 @@ https://www.google.com/"></textarea>
       }
 
       try {
+        const requestBody = {
+          url,
+          options: {
+            printBackground: true,
+            landscape: options.orientation === 'Landscape',
+            format: options.pageSize?.toLowerCase() === 'a4' ? 'A4' : 'Letter',
+            margin: options.margin ? { top: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, right: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, bottom: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, left: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}` } : undefined,
+          },
+        };
+        console.log('Sending to API:', JSON.stringify(requestBody));
+
         const res = await fetch('/api/pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url,
-            options: {
-              printBackground: true,
-              landscape: options.orientation === 'Landscape',
-              format: options.pageSize?.toLowerCase() === 'a4' ? 'A4' : 'Letter',
-              margin: options.margin ? { top: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, right: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, bottom: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, left: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}` } : undefined,
-            },
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (res.ok) {
@@ -902,7 +905,10 @@ https://www.google.com/"></textarea>
   // Get options from the form
   function getOptions(tabContent) {
     const optionsContainer = tabContent.querySelector('.more-options');
-    if (!optionsContainer || optionsContainer.style.display === 'none') return {};
+    if (!optionsContainer || optionsContainer.style.display === 'none') {
+      console.log('getOptions: more-options hidden, returning {}');
+      return {};
+    }
 
     const options = {};
     const getValue = (selector) => tabContent.querySelector(selector)?.value;
@@ -920,6 +926,7 @@ https://www.google.com/"></textarea>
       };
     }
 
+    console.log('getOptions result:', JSON.stringify(options));
     return options;
   }
   
