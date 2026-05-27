@@ -1,50 +1,37 @@
 # HTML to PDF Converter
 
-Client-side HTML-to-PDF converter with a local Puppeteer backend for perfect URL rendering.
+Client-side HTML-to-PDF converter. URL-to-PDF via [Browserless.io](https://www.browserless.io/), with CORS proxy fallback.
 
 ## Features
 
-- **URL to PDF** — local Puppeteer server renders pages exactly as in browser (JS, CSS, fonts included), falls back to CORS proxies
+- **URL to PDF** — renders via Browserless.io (Puppeteer in the cloud), falls back to CORS proxy
 - **HTML file to PDF** — drag & drop or select local `.html` files
 - **HTML code to PDF** — paste raw HTML, get a PDF
-- Multiple page sizes (A4, Letter, etc.), portrait/landscape, custom margins
+- Page sizes (A4, Letter), portrait/landscape
 
-## Tech Stack
+## Deployment (Vercel)
 
-- **Frontend**: jsPDF + html2canvas + DOMPurify (vanilla JS, no framework)
-- **Backend**: Express + Puppeteer-core (uses installed Edge/Chrome)
+This is a **pure static site** — no server needed.
 
-## Quick Start
+1. Push `1.html` (and any assets) to a GitHub repo
+2. Import repo in Vercel dashboard
+3. Deploy — done
+
+## Local Usage
+
+```bash
+npx serve .
+```
+
+Open `http://localhost:3000/1.html`.
+
+## Local Server (alternative)
+
+If you prefer running Puppeteer locally instead of using Browserless:
 
 ```bash
 npm install
 node server.js
 ```
 
-Open `http://localhost:8080/1.html`.
-
-## Production
-
-```bash
-# Rate limit: 10 req/min per IP. Set API key for auth:
-API_KEYS=secret1,secret2 node server.js
-```
-
-The API key is sent via the `X-Api-Key` header. Without it, the API is open (rate-limited only).
-
-### API
-
-`POST /api/pdf`
-
-```json
-{ "url": "https://example.com" }
-```
-
-Returns a PDF file.
-
-### Security
-
-- Only public HTTP(S) URLs allowed (blocks localhost, private IPs, `file://`)
-- `--no-sandbox` required for Puppeteer, but `--disable-web-security` is NOT used
-- Rate limited, body size capped at 5 MB
-- Optional API key authentication
+Then open `http://localhost:8080/1.html`.
