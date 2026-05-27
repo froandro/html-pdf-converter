@@ -15,15 +15,17 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { printBackground, landscape, format } = options || {};
+    const { margin: marginStr, landscape, format } = options || {};
+    const pdfOptions = {
+      printBackground: true,
+      landscape: landscape || false,
+      format: format || 'A4',
+    };
+    if (marginStr) pdfOptions.margin = marginStr;
 
     const browserlessOptions = {
       url,
-      options: {
-        printBackground: true,
-        landscape: landscape || false,
-        format: format || 'A4',
-      },
+      options: pdfOptions,
       gotoOptions: {
         waitUntil: 'networkidle0',
         timeout: 20000,
