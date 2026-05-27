@@ -914,15 +914,15 @@ https://www.google.com/"></textarea>
     const getValue = (selector) => tabContent.querySelector(selector)?.value;
 
     // Page size and orientation
-    options.pageSize = getValue('select[title*="paper size"]');
-    options.orientation = getValue('select[title*="orientation"]');
+    options.pageSize = getValue('select[title*="paper size" i]');
+    options.orientation = getValue('select[title*="orientation" i]');
 
     // Margin
-    const marginInput = tabContent.querySelector('input[title*="margin"]');
+    const marginInput = tabContent.querySelector('input[title*="margin" i]');
     if (marginInput) {
       options.margin = {
         value: marginInput.value,
-        unit: tabContent.querySelector('select[title*="margin unit"]')?.value || 'px'
+        unit: tabContent.querySelector('select[title*="margin unit" i]')?.value || 'px'
       };
     }
 
