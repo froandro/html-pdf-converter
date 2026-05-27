@@ -658,7 +658,7 @@ https://www.google.com/"></textarea>
               printBackground: true,
               landscape: options.orientation === 'Landscape',
               format: options.pageSize?.toLowerCase() === 'a4' ? 'A4' : 'Letter',
-              margin: options.margin ? `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}` : undefined,
+              margin: options.margin ? { top: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, right: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, bottom: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, left: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}` } : undefined,
             },
           }),
         });

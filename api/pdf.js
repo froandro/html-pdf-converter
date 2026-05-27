@@ -15,13 +15,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { margin: marginStr, landscape, format } = options || {};
+    const { margin, landscape, format } = options || {};
     const pdfOptions = {
       printBackground: true,
       landscape: landscape || false,
       format: format || 'A4',
     };
-    if (marginStr) pdfOptions.margin = marginStr;
+    if (margin) pdfOptions.margin = margin;
 
     const browserlessOptions = {
       url,
