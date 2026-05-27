@@ -15,12 +15,21 @@ module.exports = async (req, res) => {
   }
 
   try {
+    const browserlessOptions = {
+      url,
+      options: {
+        ...options,
+        emulateScreenMedia: true,
+        gotoOptions: { waitUntil: 'networkidle0', timeout: 20000 },
+      },
+    };
+
     const response = await fetch(
       `https://chrome.browserless.io/pdf?token=${token}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, options }),
+        body: JSON.stringify(browserlessOptions),
       }
     );
 
