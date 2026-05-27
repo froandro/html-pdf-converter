@@ -15,13 +15,20 @@ module.exports = async (req, res) => {
   }
 
   try {
+    const { printBackground, landscape, format } = options || {};
+
     const browserlessOptions = {
       url,
       options: {
-        ...options,
-        emulateScreenMedia: true,
-        gotoOptions: { waitUntil: 'networkidle0', timeout: 20000 },
+        printBackground: true,
+        landscape: landscape || false,
+        format: format || 'A4',
       },
+      gotoOptions: {
+        waitUntil: 'networkidle0',
+        timeout: 20000,
+      },
+      emulateMediaType: 'screen',
     };
 
     const response = await fetch(
