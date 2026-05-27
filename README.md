@@ -1,21 +1,23 @@
 # HTML to PDF Converter
 
-Client-side HTML-to-PDF converter. URL-to-PDF via [Browserless.io](https://www.browserless.io/), with CORS proxy fallback.
+Client-side HTML-to-PDF converter. URL-to-PDF via [Browserless.io](https://www.browserless.io/) proxied through a serverless function (token stays server-side).
 
 ## Features
 
-- **URL to PDF** — renders via Browserless.io (Puppeteer in the cloud), falls back to CORS proxy
-- **HTML file to PDF** — drag & drop or select local `.html` files
+- **URL to PDF** — renders via Browserless, falls back to CORS proxy
+- **HTML file to PDF** — drag & drop `.html` files
 - **HTML code to PDF** — paste raw HTML, get a PDF
 - Page sizes (A4, Letter), portrait/landscape
 
-## Deployment (Vercel)
+## Deploy to Vercel
 
-This is a **pure static site** — no server needed.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/froandro/html-pdf-converter)
 
-1. Push `1.html` (and any assets) to a GitHub repo
-2. Import repo in Vercel dashboard
+1. Click the button above or import your GitHub repo in Vercel dashboard
+2. Add environment variable: `BROWSERLESS_TOKEN` = your [Browserless.io](https://www.browserless.io/) API key
 3. Deploy — done
+
+No build step needed. Vercel automatically serves `1.html` as static and `api/pdf.js` as a serverless function.
 
 ## Local Usage
 
@@ -25,13 +27,10 @@ npx serve .
 
 Open `http://localhost:3000/1.html`.
 
-## Local Server (alternative)
+## Environment Variables
 
-If you prefer running Puppeteer locally instead of using Browserless:
+| Variable | Required | Description |
+|---|---|---|
+| `BROWSERLESS_TOKEN` | Yes (for URL tab) | Browserless.io API key |
 
-```bash
-npm install
-node server.js
-```
-
-Then open `http://localhost:8080/1.html`.
+Get a free key at [browserless.io](https://www.browserless.io/).

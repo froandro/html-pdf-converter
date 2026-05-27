@@ -489,8 +489,6 @@ https://www.google.com/"></textarea>
     NOTIFICATION_AUTO_CLOSE: 5000,
     NOTIFICATION_ANIMATION_DURATION: 300,
     PDF_IMAGE_FORMAT: 'png',
-    BROWSERLESS_TOKEN: '2UazIc3Y5mzrV1C072ea32d55884067b8f11b8ba174e17137',
-    BROWSERLESS_API: 'https://chrome.browserless.io/pdf',
   };
 
   // Enhanced tab functionality
@@ -692,7 +690,7 @@ https://www.google.com/"></textarea>
       const urlObj = new URL(url);
       const isLocal = ['localhost', '127.0.0.1'].includes(urlObj.hostname) || 
                       urlObj.hostname === window.location.hostname;
-                        
+
       if (isLocal) {
         const response = await fetch(url);
         if (response.ok) {
@@ -704,8 +702,7 @@ https://www.google.com/"></textarea>
       }
 
       try {
-        const apiUrl = `${CONFIG.BROWSERLESS_API}?token=${CONFIG.BROWSERLESS_TOKEN}`;
-        const res = await fetch(apiUrl, {
+        const res = await fetch('/api/pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -732,7 +729,7 @@ https://www.google.com/"></textarea>
           return;
         }
       } catch (e) {
-        // Browserless not available, fall through to proxy
+        // API not available, fall through to proxy
       }
 
       await convertUrlViaProxy(url);
