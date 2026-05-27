@@ -19,8 +19,8 @@ module.exports = async (req, res) => {
     const pdfOptions = {
       printBackground: true,
       landscape: landscape || false,
-      format: format || 'A4',
     };
+    if (format) pdfOptions.format = format;
     if (margin) pdfOptions.margin = margin;
 
     const browserlessOptions = {

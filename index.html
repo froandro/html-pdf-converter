@@ -649,12 +649,14 @@ https://www.google.com/"></textarea>
       }
 
       try {
+        const formatMap = { a4: 'A4', letter: 'Letter', legal: 'Legal' };
+        const selSize = (options.pageSize || '').toLowerCase();
         const requestBody = {
           url,
           options: {
             printBackground: true,
             landscape: options.orientation === 'Landscape',
-            format: options.pageSize?.toLowerCase() === 'a4' ? 'A4' : 'Letter',
+            format: formatMap[selSize] || undefined,
             margin: options.margin ? { top: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, right: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, bottom: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}`, left: `${options.margin.value}${options.margin.unit === 'mm' ? 'mm' : 'px'}` } : undefined,
           },
         };
