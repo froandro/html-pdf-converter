@@ -268,10 +268,11 @@
     <h1 style="font-weight: bold; font-size: 36px;">HTML to PDF</h1>
     <h2 style="font-weight: 500; font-size: 26px; color: #9AA5AA;">Convert web pages or HTML files to PDF documents</h2>
 
-    <div class="tabs" role="tablist" aria-label="Conversion options">
+      <div class="tabs" role="tablist" aria-label="Conversion options">
       <div class="tab active" role="tab" aria-selected="true" aria-controls="tab-url" tabindex="0" data-tab="url">Convert URL to PDF</div>
       <div class="tab" role="tab" aria-selected="false" aria-controls="tab-file" tabindex="-1" data-tab="file">Convert HTML files</div>
       <div class="tab" role="tab" aria-selected="false" aria-controls="tab-code" tabindex="-1" data-tab="code">HTML code</div>
+      <div class="tab" role="tab" aria-selected="false" aria-controls="tab-tracker" tabindex="-1" data-tab="tracker">Schedule</div>
     </div>
 
     <!-- Tab Content -->
@@ -336,7 +337,7 @@ https://www.google.com/"></textarea>
       </button>
     </div>
 
-    <div id="tab-code" class="tab-content" role="tabpanel" aria-labelledby="tab-code">
+      <div id="tab-code" class="tab-content" role="tabpanel" aria-labelledby="tab-code">
       <textarea placeholder="&lt;!DOCTYPE html&gt;
 &lt;html lang=&quot;en&quot;&gt;
 &lt;head&gt;
@@ -373,6 +374,58 @@ https://www.google.com/"></textarea>
             <small class="option-help">Sets the rotation of the page</small>
           </div>
 
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-tracker" class="tab-content" role="tabpanel" aria-labelledby="tab-tracker">
+      <div style="text-align:left; max-width:600px; margin:0 auto;">
+        <h3 style="margin-bottom:16px;">GitHub Tracker Schedule</h3>
+        <div class="options-grid">
+          <div class="option-group">
+            <label class="option-label">Mode</label>
+            <select id="tr-mode">
+              <option value="new">New (repos created today)</option>
+              <option value="trending">Trending (stars, 30 days)</option>
+              <option value="all">All (updated)</option>
+            </select>
+          </div>
+          <div class="option-group">
+            <label class="option-label">Search keyword</label>
+            <input type="text" id="tr-search" value="AI" />
+          </div>
+          <div class="option-group">
+            <label class="option-label">Language</label>
+            <input type="text" id="tr-language" placeholder="e.g. Python" />
+          </div>
+          <div class="option-group">
+            <label class="option-label">Topic</label>
+            <input type="text" id="tr-topic" placeholder="e.g. machine-learning" />
+          </div>
+          <div class="option-group">
+            <label class="option-label">Results per page</label>
+            <input type="number" id="tr-per-page" value="15" min="1" max="100" />
+          </div>
+          <div class="option-group">
+            <label class="option-label">Schedule</label>
+            <select id="tr-cron">
+              <option value="0 6 * * *">Daily at 06:00 UTC</option>
+              <option value="0 8 * * 1-5">Weekdays at 08:00 UTC</option>
+              <option value="0 7 * * 1">Weekly on Monday 07:00 UTC</option>
+              <option value="0 9 1 * *">Monthly on 1st 09:00 UTC</option>
+              <option value="0 */6 * * *">Every 6 hours</option>
+              <option value="custom">Custom cron</option>
+            </select>
+            <input type="text" id="tr-cron-custom" style="display:none; margin-top:8px;" placeholder="0 6 * * *" />
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
+          <button class="btn btn-primary" id="tr-save">Save Settings</button>
+          <button class="btn btn-primary" id="tr-run" style="background-color:#0366d6;">Run Now</button>
+        </div>
+        <div id="tr-status" style="margin-top:12px; font-size:13px; color:var(--text-medium);"></div>
+        <div id="tr-config-preview" style="margin-top:16px; background:var(--bg-light); border:1px solid var(--border); border-radius:6px; padding:16px; text-align:left; font-size:12px; display:none;">
+          <pre id="tr-config-json" style="white-space:pre-wrap; word-break:break-word; font-family:monospace; margin:0;"></pre>
         </div>
       </div>
     </div>
@@ -1052,6 +1105,123 @@ https://www.google.com/"></textarea>
     });
   }
   
+  // --- Tracker Settings ---
+  const TRACKER_CONFIG_KEY = 'morja_tracker_config';
+  const TRACKER_REPO = 'froandro/github-tracker';
+
+  function getCronValue() {
+    const sel = document.getElementById('tr-cron');
+    if (sel.value === 'custom') return document.getElementById('tr-cron-custom').value.trim() || '0 6 * * *';
+    return sel.value;
+  }
+
+  function loadTrackerConfig() {
+    try {
+      const saved = localStorage.getItem(TRACKER_CONFIG_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { mode: 'trending', search: 'AI', language: '', topic: '', per_page: 15, cron: '0 6 * * *' };
+  }
+
+  function saveTrackerConfigToForm() {
+    const cfg = loadTrackerConfig();
+    document.getElementById('tr-mode').value = cfg.mode || 'trending';
+    document.getElementById('tr-search').value = cfg.search || '';
+    document.getElementById('tr-language').value = cfg.language || '';
+    document.getElementById('tr-topic').value = cfg.topic || '';
+    document.getElementById('tr-per-page').value = cfg.per_page || 15;
+    const cronSel = document.getElementById('tr-cron');
+    const cronCustom = document.getElementById('tr-cron-custom');
+    if (['0 6 * * *','0 8 * * 1-5','0 7 * * 1','0 9 1 * *','0 */6 * * *'].includes(cfg.cron)) {
+      cronSel.value = cfg.cron;
+      cronCustom.style.display = 'none';
+    } else {
+      cronSel.value = 'custom';
+      cronCustom.style.display = 'block';
+      cronCustom.value = cfg.cron || '0 6 * * *';
+    }
+  }
+
+  function getTrackerConfig() {
+    return {
+      mode: document.getElementById('tr-mode').value,
+      search: document.getElementById('tr-search').value.trim(),
+      language: document.getElementById('tr-language').value.trim(),
+      topic: document.getElementById('tr-topic').value.trim(),
+      per_page: parseInt(document.getElementById('tr-per-page').value) || 15,
+      cron: getCronValue(),
+    };
+  }
+
+  function showConfigPreview(cfg) {
+    const preview = document.getElementById('tr-config-preview');
+    const jsonEl = document.getElementById('tr-config-json');
+    const workflowYaml = `name: GitHub Tracker
+on:
+  schedule:
+    - cron: '${cfg.cron}'
+  workflow_dispatch:
+    inputs:
+      search:
+        default: '${cfg.search}'
+      language:
+        default: '${cfg.language}'
+      topic:
+        default: '${cfg.topic}'
+      mode:
+        default: '${cfg.mode}'
+      per_page:
+        default: '${String(cfg.per_page)}'`;
+    jsonEl.textContent = 'Config:\n' + JSON.stringify(cfg, null, 2) + '\n\nWorkflow YAML:\n' + workflowYaml;
+    preview.style.display = 'block';
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    saveTrackerConfigToForm();
+
+    document.getElementById('tr-cron').addEventListener('change', function() {
+      document.getElementById('tr-cron-custom').style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+
+    document.getElementById('tr-save').addEventListener('click', () => {
+      const cfg = getTrackerConfig();
+      localStorage.setItem(TRACKER_CONFIG_KEY, JSON.stringify(cfg));
+      showConfigPreview(cfg);
+      showNotification('Settings saved', 'success');
+    });
+
+    document.getElementById('tr-run').addEventListener('click', async () => {
+      const cfg = getTrackerConfig();
+      const token = prompt('Enter GitHub token (with repo scope):');
+      if (!token) return;
+      const btn = document.getElementById('tr-run');
+      btn.disabled = true;
+      btn.textContent = 'Running...';
+      const status = document.getElementById('tr-status');
+      status.textContent = 'Triggering workflow...';
+      try {
+        const res = await fetch(`https://api.github.com/repos/${TRACKER_REPO}/actions/workflows/tracker.yml/dispatches`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Accept': 'application/vnd.github.v3+json' },
+          body: JSON.stringify({ ref: 'main', inputs: { search: cfg.search, language: cfg.language, topic: cfg.topic, mode: cfg.mode, per_page: String(cfg.per_page), ai_provider: 'openrouter', ai_model: 'z-ai/glm-4.5-air:free' } }),
+        });
+        if (res.ok) {
+          status.textContent = `Workflow triggered! Check https://github.com/${TRACKER_REPO}/actions`;
+          showNotification('Workflow started', 'success');
+        } else {
+          const err = await res.text();
+          status.textContent = `Error: ${err}`;
+          showNotification('Failed to trigger: ' + err, 'error');
+        }
+      } catch (e) {
+        status.textContent = `Error: ${e.message}`;
+        showNotification('Network error', 'error');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Run Now';
+    });
+  });
+
   // Function to show notifications
   function showNotification(message, type = 'info') {
     const existingNotifications = document.querySelectorAll('.notification');
