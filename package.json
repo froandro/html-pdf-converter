@@ -1,5 +1,10 @@
 {
   "name": "html-pdf-converter",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "express": "^4.22.2",
+    "express-rate-limit": "^8.5.2",
+    "puppeteer-core": "^22.15.0"
+  }
 }

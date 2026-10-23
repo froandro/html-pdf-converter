@@ -503,6 +503,9 @@ https://www.google.com/"></textarea>
     button.addEventListener('click', function() {
       const tabContent = this.closest('.tab-content');
       const tabId = tabContent.id;
+
+      // File tab: handled by the upload input listener, nothing to convert on click
+      if (tabId === 'tab-file') return;
       
       // Show processing indicator
       showProcessingIndicator();
@@ -661,6 +664,9 @@ https://www.google.com/"></textarea>
     }
     
     const iframe = document.createElement('iframe');
+    // ponytail: sandbox blocks the proxied site's scripts from running in our origin;
+    // upgrade path: full sanitization pipeline if inline scripts need to execute
+    iframe.setAttribute('sandbox', 'allow-same-origin');
     Object.assign(iframe.style, {
       position: 'absolute', left: '-9999px',
       width: '1280px',
